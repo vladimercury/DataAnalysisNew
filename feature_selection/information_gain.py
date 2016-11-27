@@ -21,25 +21,22 @@ def information_gain(data, labels, dumped=False, create_dump=False):
         p = possibilities(x)
         return sum([p[xi] * spec_cond_entropy(x, y, xi) for xi in range(len(p))])
 
-    def cond_entropy_full(x, y, status=False):
-        from util.frame import new_frame
-        if status:
-            print('Conditional entropy:')
+    def cond_entropy_full(x, y):
+        from util.frame import progress
+        print('Information gain: computing conditional entropy:')
         feat_len = len(x)
         result = []
         for i in range(feat_len):
             result.append(cond_entropy(x[i], y))
-            if status:
-                new_frame(str((i + 1) * 100 / feat_len) + '%')
-        if status:
-            print()
+            progress((i + 1) / feat_len)
+        print()
         return np.asarray(result)
 
     import util.dump as dump
     features = get_features(data)
     h_y_x = []
     if not dumped:
-        h_y_x = cond_entropy_full(features, labels, True)
+        h_y_x = cond_entropy_full(features, labels)
         if create_dump:
             dump.dump_object(h_y_x, 'hyx.dump')
     else:
