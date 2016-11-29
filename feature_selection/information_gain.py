@@ -1,4 +1,4 @@
-def information_gain(data, labels, dumped=False, create_dump=False):
+def information_gain(data, labels, dumped=False):
     import numpy as np
 
     def get_features(data_set):
@@ -37,10 +37,9 @@ def information_gain(data, labels, dumped=False, create_dump=False):
     h_y_x = []
     if not dumped:
         h_y_x = cond_entropy_full(features, labels)
-        if create_dump:
-            dump.dump_object(h_y_x, 'hyx.dump')
+        dump.dump_object(h_y_x, 'ig/hyx.dump')
     else:
-        h_y_x = dump.load_object('hyx.dump')
+        h_y_x = dump.load_object('ig/hyx.dump')
     info_gain = entropy(labels) - h_y_x
     result = [(info_gain[i], i) for i in range(len(info_gain))]
     return result
