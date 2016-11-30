@@ -8,9 +8,13 @@ warnings.filterwarnings('ignore')
 
 INFO_GAIN = False
 PEARSON = False
+SPEARMAN = True
+OVERALL= False
 
 
 def run_classifier(train_data, train_labels, test_data, classifier):
+    if train_data.shape[1] == 0:
+        return np.asarray([0] * train_data.shape[0])
     classifier.fit(train_data, train_labels)
     return classifier.predict(test_data)
 
@@ -75,6 +79,31 @@ if PEARSON:
     dump.dump_object(pearson_n_feat, 'pearson/svm/feat.dump')
 
     pearson_cls = [(pearson_coefs[i], pearson_f1[i]) for i in range(len(pearson_coefs))]
-    pearson_coef_max = max(pearson_cls, key=lambda x: x[1] + x[0] * 1e-9)[0]
+    pearson_coef_max = max(pearson_cls, key=lambda x: x[1])[0]
     indexes_pearson = [x[1] for x in [y for y in pearson if y[0] > pearson_coef_max]]  # to eiler's diagram
     dump.dump_object(indexes_pearson, 'pearson/max/indexes.dump')
+
+# SPEARMAN
+if SPEARMAN:
+    spearman = dump.load_object('spearman/s.dump')
+    spearman_coefs = np.arange(10e-6, 10e-4, 10e-6)
+    spearman_f1 = []
+    spearman_n_feat = []
+    print('Spearman: classifying on different coefficients')
+    for i in range(len(spearman_coefs)):
+        frame.progress((i + 1) / len(spearman_coefs))
+        trimmed_spearman = [x for x in spearman if x[0] > spearman_coefs[i]]
+        indexes_spearman = [x[1] for x in trimmed_spearman]
+        spearman_data = trim.trim_data(data, indexes_spearman)
+        spearman_data_valid = trim.trim_data(data_valid, indexes_spearman)
+        spearman_f1.append(metrics.f1_score(labels_valid, classify(spearman_data, spearman_data_valid, labels)))
+        spearman_n_feat.append(len(indexes_spearman))
+    print()
+    dump.dump_object(spearman_coefs, 'spearman/svm/coefs.dump')
+    dump.dump_object(spearman_f1, 'spearman/svm/f1.dump')
+    dump.dump_object(spearman_n_feat, 'spearman/svm/feat.dump')
+
+    spearman_cls = [(spearman_coefs[i], spearman_f1[i]) for i in range(len(spearman_coefs))]
+    spearman_coef_max = max(spearman_cls, key=lambda x: x[1])[0]
+    indexes_spearman = [x[1] for x in [y for y in spearman if y[0] > spearman_coef_max]]  # to eiler's diagram
+    dump.dump_object(indexes_spearman, 'spearman/max/indexes.dump')

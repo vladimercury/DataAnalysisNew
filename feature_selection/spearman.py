@@ -1,4 +1,4 @@
-def pearson(data, labels, dumped=False):
+def spearman(data, labels, dumped=False):
     import numpy as np
     import util.dump as dump
     import math
@@ -11,17 +11,15 @@ def pearson(data, labels, dumped=False):
         return [[i[j] for i in data_set] for j in range(n)]
 
     def feature_correlation(x, y):
-        n = range(len(x))
-        x_avg = sum(x) / len(x)
-        y_avg = sum(y) / len(y)
-        cov = sum([(x[i] - x_avg) * (y[i] - y_avg) for i in n])
-        x_dev = math.sqrt(sum([(x[i] - x_avg) ** 2 for i in n]))
-        y_dev = math.sqrt(sum([(y[i] - y_avg) ** 2 for i in n]))
-        return cov / (x_dev * y_dev)
+        n = len(x)
+        rank_x = np.asarray(stats.rankdata(x, method='dense'))
+        rank_y = np.asarray(stats.rankdata(y, method='dense'))
+        sum_d_2 = sum((rank_x - rank_y) ** 2)
+        return 1 - 6 * sum_d_2 / (n * (n ** 2 - 1))
 
     def correlation(x, y):
         from util.frame import progress
-        print('Pearson: computing corellation coefficients:')
+        print('Spearman: computing corellation coefficients:')
         feat_len = len(x)
         result = []
         for i in range(feat_len):
@@ -34,10 +32,12 @@ def pearson(data, labels, dumped=False):
     ro = []
     if not dumped:
         ro = correlation(features, labels)
-        dump.dump_object(ro, 'pearson/ro.dump')
+        dump.dump_object(ro, 'spearman/ro.dump')
     else:
-        ro = dump.load_object('pearson/ro.dump')
-    v = len(labels) - 2
+        ro = dump.load_object('spearman/ro.dump')
+    print(ro)
+    n = len(labels)
+    v = n - 2
     p = []
     for i in range(len(ro)):
         t = ro[i] * math.sqrt(v) / math.sqrt(1 - ro[i] ** 2)

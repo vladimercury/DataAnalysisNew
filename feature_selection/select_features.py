@@ -1,6 +1,7 @@
 import feature_selection.reader as reader
 import feature_selection.information_gain as info_gain
 import feature_selection.pearson as pearson
+import feature_selection.spearman as spearman
 import util.dump as dump
 import numpy as np
 
@@ -22,3 +23,8 @@ ig = info_gain.information_gain(data, labels, dumped=True)
 # Pearson
 p = pearson.pearson(data, labels, dumped=True)
 # dump.dump_object(p, 'pearson/p.dump')
+
+# Spearman
+s = spearman.spearman(data, labels, dumped=True)
+print(s)
+#dump.dump_object(s, 'spearman/s.dump')
