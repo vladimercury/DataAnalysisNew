@@ -1,61 +1,61 @@
 import util.dump as dump
 import matplotlib.pyplot as pt
 
-INFO_GAIN = False
-PEARSON = False
+INFO_GAIN = True
+PEARSON = True
 SPEARMAN = True
 
+IG_NBEST = True
+PEARSON_NBEST = True
+SPEARMAN_NBEST = True
+
 VENN = True
+VENN_NBEST = True
 
 score = dump.load_object('score.dump')
 
+
+def draw_plot(metric):
+    metric_coefs = dump.load_object(metric + '/svm/coefs.dump')
+    metric_f1 = dump.load_object(metric + '/svm/f1.dump')
+    metric_n_feat = dump.load_object(metric +'/svm/feat.dump')
+
+    pt.title(metric + ': F1')
+    pt.plot(metric_coefs, metric_f1)
+    pt.plot(metric_coefs, [score] * len(metric_coefs), color='red')
+    pt.figure()
+    pt.title(metric + ': N Features')
+    pt.plot(metric_coefs, metric_n_feat)
+    pt.show()
+
+
 # IG
 if INFO_GAIN:
-    ig_coefs = dump.load_object('ig/svm/coefs.dump')
-    ig_f1 = dump.load_object('ig/svm/f1.dump')
-    ig_n_feat = dump.load_object('ig/svm/feat.dump')
-
-    pt.title('Information Gain: F1')
-    pt.plot(ig_coefs, ig_f1)
-    pt.plot(ig_coefs, [score] * len(ig_coefs), color='red')
-    pt.figure()
-    pt.title('Infromation Gain: N Features')
-    pt.plot(ig_coefs, ig_n_feat)
-    pt.show()
-
-# PEARSON
+    draw_plot('ig')
 if PEARSON:
-    pearson_coefs = dump.load_object('pearson/svm/coefs.dump')
-    pearson_f1 = dump.load_object('pearson/svm/f1.dump')
-    pearson_n_feat = dump.load_object('pearson/svm/feat.dump')
-
-    pt.title('Pearson: F1')
-    pt.plot(pearson_coefs, pearson_f1)
-    pt.plot(pearson_coefs, [score] * len(pearson_coefs), color='red')
-    pt.figure()
-    pt.title('Pearson: N Features')
-    pt.plot(pearson_coefs, pearson_n_feat)
-    pt.show()
-
-# SPEARMAN
+    draw_plot('pearson')
 if SPEARMAN:
-    spearman_coefs = dump.load_object('spearman/svm/coefs.dump')
-    spearman_f1 = dump.load_object('spearman/svm/f1.dump')
-    spearman_n_feat = dump.load_object('spearman/svm/feat.dump')
+    draw_plot('spearman')
+if IG_NBEST:
+    draw_plot('ig/nbest')
+if PEARSON_NBEST:
+    draw_plot('pearson/nbest')
+if SPEARMAN_NBEST:
+    draw_plot('spearman/nbest')
 
-    pt.title('Spearman: F1')
-    pt.plot(spearman_coefs, spearman_f1)
-    pt.plot(spearman_coefs, [score] * len(spearman_coefs), color='red')
-    pt.figure()
-    pt.title('Spearman: N Features')
-    pt.plot(spearman_coefs, spearman_n_feat)
-    pt.show()
 
+import matplotlib_venn as venn
 # VENN
 if VENN:
     indexes_ig = set(dump.load_object('ig/max/indexes.dump'))
     indexes_pearson = set(dump.load_object('pearson/max/indexes.dump'))
     indexes_spearman = set(dump.load_object('spearman/max/indexes.dump'))
-    import matplotlib_venn as venn
     venn.venn3([indexes_ig, indexes_pearson, indexes_spearman], ('IG', 'Pearson', 'Spearman'))
+    pt.show()
+if VENN_NBEST:
+    indexes_ig = set(dump.load_object('ig/nbest/max/indexes.dump'))
+    indexes_pearson = set(dump.load_object('pearson/nbest/max/indexes.dump'))
+    indexes_spearman = set(dump.load_object('spearman/nbest/max/indexes.dump'))
+    venn.venn3([indexes_ig, indexes_pearson, indexes_spearman], ('IG', 'Pearson', 'Spearman'))
+    pt.title('N BEST')
     pt.show()

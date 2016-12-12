@@ -12,8 +12,8 @@ def spearman(data, labels, dumped=False):
 
     def feature_correlation(x, y):
         n = len(x)
-        rank_x = np.asarray(stats.rankdata(x, method='dense'))
-        rank_y = np.asarray(stats.rankdata(y, method='dense'))
+        rank_x = np.asarray(stats.rankdata(x, method='max'))
+        rank_y = np.asarray(stats.rankdata(y, method='max'))
         sum_d_2 = sum((rank_x - rank_y) ** 2)
         return 1 - 6 * sum_d_2 / (n * (n ** 2 - 1))
 
@@ -35,7 +35,6 @@ def spearman(data, labels, dumped=False):
         dump.dump_object(ro, 'spearman/ro.dump')
     else:
         ro = dump.load_object('spearman/ro.dump')
-    print(ro)
     n = len(labels)
     v = n - 2
     p = []

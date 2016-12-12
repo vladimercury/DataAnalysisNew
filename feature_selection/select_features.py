@@ -25,6 +25,5 @@ p = pearson.pearson(data, labels, dumped=True)
 # dump.dump_object(p, 'pearson/p.dump')
 
 # Spearman
-s = spearman.spearman(data, labels, dumped=True)
-print(s)
-#dump.dump_object(s, 'spearman/s.dump')
+s = spearman.spearman(data, labels, dumped=False)
+# dump.dump_object(s, 'spearman/p.dump')

@@ -1,7 +1,2 @@
-import numpy as np
-import scipy.stats as stats
-import math
-r = -0.17575757575
-v = 8
-t = r * math.sqrt(v) / math.sqrt(1 - r ** 2)
-print(stats.t.sf(np.abs(t), v) * 2)
+a = [(0, 213), (2, 8321), (-3, 821), (1, 2381)]
+print(sorted(a, key=lambda x: x[0]))
