@@ -1,66 +1,85 @@
 import neural_network.reader as reader
-from neural_network.neuron import NeuralNetwork
+from neural_network.network import NeuralNetwork
 from util.frame import progress
-from sklearn.metrics import classification_report
+from sklearn.metrics import f1_score, classification_report
 from util.dump import dump_object, load_object
 from sys import stdout
+from util.timer import Timer
+import numpy as np
+import warnings
+warnings.filterwarnings('ignore')
 
-NETWORK_DUMPED = True
-NEED_CLASSIFY = False
+def images_to_np_array(image_data):
+    return np.asarray([np.fromstring(i, dtype=np.uint8) / 256 for i in image_data])
+
+
+def labels_to_np_array(labels_data):
+    x = np.zeros((len(labels_data), 10))
+    for i in range(len(labels_data)):
+        x[i][labels_data[i]] = 1
+    return x
+
+
+def get_predicted(predict_data):
+    return [max(range(len(i)), key=lambda x: i[x]) for i in predict_data]
+
+NETWORK_DUMPED = False
+NETWORK_CONTINUE = True
 
 train_labels = []
 train_images = []
-test_labels = []
-test_images = [0, (0, 0)]
 image_size = (28, 28)
+timer = Timer()
 if not NETWORK_DUMPED:
     stdout.write('Loading Train data...')
+    timer.set_new()
     train_labels = reader.read_labels('mnist/train-labels-idx1-ubyte')
     train_images = reader.read_images('mnist/train-images-idx3-ubyte')
-    print('DONE')
+    print('DONE in ' + timer.get_diff_str())
     image_size = train_images[1]
-if NEED_CLASSIFY:
-    stdout.write('Loading Test data...')
-    test_labels = reader.read_labels('mnist/t10k-labels-idx1-ubyte')
-    test_images = reader.read_images('mnist/t10k-images-idx3-ubyte')
-    print('DONE')
-    image_size = test_images[1]
+
+stdout.write('Loading Test data...')
+timer.set_new()
+test_labels = reader.read_labels('mnist/t10k-labels-idx1-ubyte')
+test_images = reader.read_images('mnist/t10k-images-idx3-ubyte')
+print('DONE in ' + timer.get_diff_str())
+image_size = test_images[1]
+
+images_test = images_to_np_array(test_images[2])
+labels_test = labels_to_np_array(test_labels[1])
+rang_test = len(images_test)
 
 
-def to_int_vector(byte_vector):
-    return [byte_vector[i] for i in range(len(byte_vector))]
+def classify():
+    predicted = network.predict(images_test)
+    predicted = get_predicted(predicted)
+    return f1_score(test_labels[1], predicted)
 
 network = NeuralNetwork(1, 1, 1)
 if NETWORK_DUMPED:
     network = load_object('network.dump')
+    print(classify())
 else:
-    network = NeuralNetwork(10, image_size[0], image_size[1])
-    images = train_images[2]
-    labels = train_labels[1]
-    rang = len(images)
+    images_train = images_to_np_array(train_images[2])
+    labels_train = labels_to_np_array(train_labels[1])
+    stats = []
+    if NETWORK_CONTINUE:
+        network = load_object('network.dump')
+        stats = load_object('stats.dump')
+    else:
+        network = NeuralNetwork(image_size[0] * image_size[1], 10, 10)
+    rang_train = len(images_train)
     print('Training...')
-    for i in range(rang):
-        network.study(images[i], labels[i])
-        if i % 10 == 0 or i == rang - 1:
-            progress((i + 1) / rang)
-    print()
-    dump_object(network, 'network.dump')
-
-if NEED_CLASSIFY:
-    images = test_images[2]
-    labels = test_labels[1]
-    rang = len(images)
-    predicted = []
-    print('Classification...')
-    for i in range(rang):
-        predicted.append(network.get_answer(images[i]))
-        if i % 10 == 0 or i == rang - 1:
-            progress((i + 1) / rang)
-    print()
-    print(classification_report(labels[:rang], predicted))
-
-import pylab as pt
-import numpy as np
-pt.pcolor(np.asarray(network.neurons[6].weight).reshape(image_size))
-pt.colorbar()
-pt.show()
+    cycles = 7
+    timer = Timer()
+    progress(0)
+    for i in range(cycles):
+        network.train(images_train, labels_train)
+        dump_object(network, 'network.dump')
+        progress((i+1) / cycles)
+        stats.append(classify())
+    print(' DONE in ', timer.get_diff_str())
+    dump_object(stats, 'stats.dump')
+    import pylab as pt
+    pt.plot(range(len(stats)), stats)
+    pt.show()

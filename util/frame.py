@@ -12,7 +12,7 @@ def clear_frame():
 def progress(num):
     import sys
     step = 1
-    perc = '%3d%%' % int(num * 100)
+    perc = '%7.3f%%' % (num * 100)
     bar = int(num * 100 / step)
     space = int(100 / step) - bar
     sys.stdout.write('\r[' + ('=' * bar) + (' ' * space) + '] ' + perc)

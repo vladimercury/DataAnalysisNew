@@ -4,16 +4,19 @@ import feature_selection.trim as trim
 import sklearn.metrics as metrics
 import numpy as np
 import warnings
+from util.timer import Timer
 warnings.filterwarnings('ignore')
 
-INFO_GAIN = False
-PEARSON = False
-SPEARMAN = False
+timer = Timer()
+
+INFO_GAIN = True
+PEARSON = True
+SPEARMAN = True
 OVERALL= True
 
-IG_NBEST = False
-PEARSON_NBEST = False
-SPEARMAN_NBEST = False
+IG_NBEST = True
+PEARSON_NBEST = True
+SPEARMAN_NBEST = True
 
 def run_classifier(train_data, train_labels, test_data, classifier):
     if train_data.shape[1] == 0:
@@ -45,6 +48,7 @@ if INFO_GAIN:
     ig_f1 = []
     ig_n_feat = []
     print('Information Gain: classifying on different coefficients')
+    timer.set_new()
     for i in range(len(ig_coefs)):
         frame.progress((i + 1) / len(ig_coefs))
         trimmed_ig = [x for x in ig if x[0] > ig_coefs[i]]
@@ -53,7 +57,7 @@ if INFO_GAIN:
         ig_data_valid = trim.trim_data(data_valid, indexes_ig)
         ig_f1.append(metrics.f1_score(labels_valid, classify(ig_data, ig_data_valid, labels)))
         ig_n_feat.append(len(indexes_ig))
-    print()
+    print(' DONE in ' + timer.get_diff_str())
     dump.dump_object(ig_coefs, 'ig/svm/coefs.dump')
     dump.dump_object(ig_f1, 'ig/svm/f1.dump')
     dump.dump_object(ig_n_feat, 'ig/svm/feat.dump')
@@ -70,6 +74,7 @@ if PEARSON:
     pearson_f1 = []
     pearson_n_feat = []
     print('Pearson: classifying on different coefficients')
+    timer.set_new()
     for i in range(len(pearson_coefs)):
         frame.progress((i + 1) / len(pearson_coefs))
         trimmed_pearson = [x for x in pearson if x[0] > pearson_coefs[i]]
@@ -78,7 +83,7 @@ if PEARSON:
         pearson_data_valid = trim.trim_data(data_valid, indexes_pearson)
         pearson_f1.append(metrics.f1_score(labels_valid, classify(pearson_data, pearson_data_valid, labels)))
         pearson_n_feat.append(len(indexes_pearson))
-    print()
+    print(' DONE in ' + timer.get_diff_str())
     dump.dump_object(pearson_coefs, 'pearson/svm/coefs.dump')
     dump.dump_object(pearson_f1, 'pearson/svm/f1.dump')
     dump.dump_object(pearson_n_feat, 'pearson/svm/feat.dump')
@@ -95,6 +100,7 @@ if SPEARMAN:
     spearman_f1 = []
     spearman_n_feat = []
     print('Spearman: classifying on different coefficients')
+    timer.set_new()
     for i in range(len(spearman_coefs)):
         frame.progress((i + 1) / len(spearman_coefs))
         trimmed_spearman = [x for x in spearman if x[0] > spearman_coefs[i]]
@@ -103,7 +109,7 @@ if SPEARMAN:
         spearman_data_valid = trim.trim_data(data_valid, indexes_spearman)
         spearman_f1.append(metrics.f1_score(labels_valid, classify(spearman_data, spearman_data_valid, labels)))
         spearman_n_feat.append(len(indexes_spearman))
-    print()
+    print(' DONE in ' + timer.get_diff_str())
     dump.dump_object(spearman_coefs, 'spearman/svm/coefs.dump')
     dump.dump_object(spearman_f1, 'spearman/svm/f1.dump')
     dump.dump_object(spearman_n_feat, 'spearman/svm/feat.dump')
@@ -127,6 +133,7 @@ def nbest(metric, folder):
     metric_f1 = []
     metric_n_feat = []
     print(folder + ': classifying N BEST')
+    timer.set_new()
     for i in range(len(nbest_coefs)):
         frame.progress((i + 1) / len(nbest_coefs))
         indexes_metric = [x[1] for x in metric[-nbest_coefs[i]:]]
@@ -134,7 +141,7 @@ def nbest(metric, folder):
         metric_data_valid = trim.trim_data(data_valid, indexes_metric)
         metric_f1.append(metrics.f1_score(labels_valid, classify(metric_data, metric_data_valid, labels)))
         metric_n_feat.append(len(indexes_metric))
-    print()
+    print(' DONE in ' + timer.get_diff_str())
     dump.dump_object(nbest_coefs, folder + '/nbest/svm/coefs.dump')
     dump.dump_object(metric_f1, folder + '/nbest/svm/f1.dump')
     dump.dump_object(metric_n_feat, folder + '/nbest/svm/feat.dump')
