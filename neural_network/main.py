@@ -70,16 +70,23 @@ else:
         network = NeuralNetwork(image_size[0] * image_size[1], 10, 10)
     rang_train = len(images_train)
     print('Training...')
-    cycles = 7
+    cycles = 0
     timer = Timer()
     progress(0)
     for i in range(cycles):
         network.train(images_train, labels_train)
         dump_object(network, 'network.dump')
+        dump_object(stats, 'stats.dump')
         progress((i+1) / cycles)
         stats.append(classify())
     print(' DONE in ', timer.get_diff_str())
-    dump_object(stats, 'stats.dump')
     import pylab as pt
+    x, y = [0], [0]
+    step = 25
+    for i in range(len(stats) // step):
+        x.append(i * step + step)
+        selection = stats[i*step:i*step + step]
+        y.append(sum(selection) / step)
     pt.plot(range(len(stats)), stats)
+    pt.plot(x, y, color='red', linewidth=3)
     pt.show()

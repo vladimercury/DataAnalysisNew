@@ -26,8 +26,9 @@ def pearson(data, labels, dumped=False):
         result = []
         for i in range(feat_len):
             result.append(feature_correlation(x[i], y))
-            progress((i + 1) / feat_len)
-        print()
+            if i % 10 == 0:
+                progress((i + 1) / feat_len)
+        progress(1)
         return np.asarray(result)
 
     features = get_features(data)

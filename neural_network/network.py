@@ -9,6 +9,10 @@ class NeuralNetwork:
         self.hidden = hidden
         self.outputs = outputs
 
+        self.cycles = 0
+        self.step = 5
+        self.stats = []
+
         np.random.seed(seed)
 
         self.input_synapse = 2 * np.random.random((inputs, hidden)) - 1
@@ -20,12 +24,15 @@ class NeuralNetwork:
         self.hidden_layer = self._sigmoid(np.dot(data, self.input_synapse))
         return self._sigmoid(np.dot(self.hidden_layer, self.output_synapse))
 
-    def train(self, data, labels):
+    def train(self, data, labels, a=1):
         predicted = self.predict(data)
         output_error = labels - predicted
-        output_delta = output_error * self._sigmoid_deriv(predicted)
+        # self.cycles += 1
+        # if self.cycles % self.step == 0:
+        #     self.stats.append(np.mean(np.abs(output_error)))
+        output_delta = output_error * self._sigmoid_deriv(predicted) * a
         hidden_error = np.dot(output_delta, self.output_synapse.T)
-        hidden_delta = hidden_error * self._sigmoid_deriv(self.hidden_layer)
+        hidden_delta = hidden_error * self._sigmoid_deriv(self.hidden_layer) * a
         self.input_synapse += np.dot(np.transpose(data), hidden_delta)
         self.output_synapse += np.dot(np.transpose(self.hidden_layer), output_delta)
 

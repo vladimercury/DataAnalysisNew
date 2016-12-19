@@ -28,8 +28,9 @@ def information_gain(data, labels, dumped=False):
         result = []
         for i in range(feat_len):
             result.append(cond_entropy(x[i], y))
-            progress((i + 1) / feat_len)
-        print()
+            if i % 10 == 0:
+                progress((i + 1) / feat_len)
+        progress(1)
         return np.asarray(result)
 
     import util.dump as dump
