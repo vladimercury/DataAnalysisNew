@@ -9,6 +9,9 @@ import numpy as np
 import warnings
 warnings.filterwarnings('ignore')
 
+DUMPED = False
+CONTINUE = False
+
 
 def images_to_np_array(image_data):
     return np.asarray([np.fromstring(i, dtype=np.uint8) / 256 for i in image_data])
@@ -24,54 +27,59 @@ def labels_to_np_array(labels_data):
 def get_predicted(predict_data):
     return [max(range(len(i)), key=lambda x: i[x]) for i in predict_data]
 
-train_labels = []
-train_images = []
-image_size = (28, 28)
-timer = Timer()
-stdout.write('Loading Train data...')
-timer.set_new()
-train_labels = reader.read_labels('mnist/train-labels-idx1-ubyte')
-train_images = reader.read_images('mnist/train-images-idx3-ubyte')
-print('DONE in ' + timer.get_diff_str())
-image_size = train_images[1]
-
-stdout.write('Loading Test data...')
-timer.set_new()
-test_labels = reader.read_labels('mnist/t10k-labels-idx1-ubyte')
-test_images = reader.read_images('mnist/t10k-images-idx3-ubyte')
-print('DONE in ' + timer.get_diff_str())
-image_size = test_images[1]
-
-images_test = images_to_np_array(test_images[2])
-labels_test = labels_to_np_array(test_labels[1])
-rang_test = len(images_test)
-
-
-def classify():
-    predicted = network.predict(images_test)
-    predicted = get_predicted(predicted)
-    return accuracy_score(test_labels[1], predicted)
-
-network = NeuralNetwork(1, 1, 1)
-images_train = images_to_np_array(train_images[2])
-labels_train = labels_to_np_array(train_labels[1])
-
 stats_x, stats_y = [], []
-cycles = 3214
-num = 30
-print('Training...')
-progress(0)
-timer = Timer()
-rang = list(np.arange(0.1, 1, 0.05))
-for j in range(len(rang)):
-    network = NeuralNetwork(image_size[0] * image_size[1], 10, 10)
-    for i in range(cycles):
-        randoms = np.random.randint(0, 60000, num)
-        network.train(images_train[randoms], labels_train[randoms], rang[j])
-        progress((j * cycles + i + 1) / (cycles * len(rang)))
-    stats_x.append(rang[j])
-    stats_y.append(classify())
-print(' DONE in ', timer.get_diff_str())
+if CONTINUE or DUMPED:
+    stats_x, stats_y = load_object('stoch-hidden-stat.dump')
+if not DUMPED or (DUMPED and CONTINUE):
+    train_labels = []
+    train_images = []
+    image_size = (28, 28)
+    timer = Timer()
+    stdout.write('Loading Train data...')
+    timer.set_new()
+    train_labels = reader.read_labels('mnist/train-labels-idx1-ubyte')
+    train_images = reader.read_images('mnist/train-images-idx3-ubyte')
+    print('DONE in ' + timer.get_diff_str())
+    image_size = train_images[1]
+
+    stdout.write('Loading Test data...')
+    timer.set_new()
+    test_labels = reader.read_labels('mnist/t10k-labels-idx1-ubyte')
+    test_images = reader.read_images('mnist/t10k-images-idx3-ubyte')
+    print('DONE in ' + timer.get_diff_str())
+    image_size = test_images[1]
+
+    images_test = images_to_np_array(test_images[2])
+    labels_test = labels_to_np_array(test_labels[1])
+    rang_test = len(images_test)
+
+
+    def classify():
+        predicted = network.predict(images_test)
+        predicted = get_predicted(predicted)
+        return accuracy_score(test_labels[1], predicted)
+
+    network = NeuralNetwork(1, 1, 1)
+    images_train = images_to_np_array(train_images[2])
+    labels_train = labels_to_np_array(train_labels[1])
+
+    cycles = 3214
+    num = 53
+    print('Training...')
+    progress(0)
+    timer = Timer()
+    rang = list(range(60, 65, 1))
+    for j in range(len(rang)):
+        np.random.seed(1)
+        network = NeuralNetwork(image_size[0] * image_size[1], rang[j], 10)
+        for i in range(cycles):
+            randoms = np.random.randint(0, 60000, num)
+            network.train(images_train[randoms], labels_train[randoms])
+            progress((j * cycles + i + 1) / (cycles * len(rang)))
+        stats_x.append(rang[j])
+        stats_y.append(classify())
+    dump_object((stats_x, stats_y), 'stoch-hidden-stat.dump')
+    print(' DONE in ', timer.get_diff_str())
 import pylab as pt
 pt.plot(stats_x, stats_y)
 pt.show()

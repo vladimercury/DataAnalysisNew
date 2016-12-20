@@ -54,7 +54,7 @@ rang_test = len(images_test)
 def classify():
     predicted = network.predict(images_test)
     predicted = get_predicted(predicted)
-    return accuracy_score(test_labels[1], predicted)
+    return f1_score(test_labels[1], predicted)
 
 network = NeuralNetwork(1, 1, 1)
 if NETWORK_DUMPED:
@@ -68,30 +68,26 @@ else:
         network = load_object('stoch-network.dump')
         stats = load_object('stoch-stats.dump')
     else:
-        network = NeuralNetwork(image_size[0] * image_size[1], 10, 10)
+        network = NeuralNetwork(image_size[0] * image_size[1], 30, 10)
     rang_train = len(images_train)
 
     print('Training...')
-    cycles = 20321
-    num = 50
+    cycles = 100
+    num = 30
     timer = Timer()
     progress(0)
     for i in range(cycles):
         randoms = np.random.randint(0, 60000, num)
-        network.train(images_train[randoms], labels_train[randoms])
+        network.train(images_train[randoms], labels_train[randoms], 0.2)
+        if network.cycles % network.step == 0:
+            stats.append(classify())
         progress((i+1) / cycles)
     print(' DONE in ', timer.get_diff_str())
     dump_object(network, 'stoch-network.dump')
     dump_object(stats, 'stoch-stats.dump')
+    print(network.cycles)
     import pylab as pt
-    x, y = [0], [0]
-    step = 5
-    for i in range(len(stats) // step):
-        x.append(i * step + step)
-        selection = stats[i*step:i*step + step]
-        y.append(sum(selection) / step)
-    pt.plot(range(len(stats)), stats)
-    pt.plot(x, y, color='red', linewidth=3)
+    pt.plot(np.arange(len(stats)) * network.step, stats)
     pt.show()
     pt.plot(np.arange(len(network.stats)) * network.step, network.stats)
     pt.show()

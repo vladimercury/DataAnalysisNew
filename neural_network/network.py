@@ -10,7 +10,7 @@ class NeuralNetwork:
         self.outputs = outputs
 
         self.cycles = 0
-        self.step = 5
+        self.step = 1
         self.stats = []
 
         np.random.seed(seed)
@@ -27,9 +27,9 @@ class NeuralNetwork:
     def train(self, data, labels, a=1):
         predicted = self.predict(data)
         output_error = labels - predicted
-        # self.cycles += 1
-        # if self.cycles % self.step == 0:
-        #     self.stats.append(np.mean(np.abs(output_error)))
+        self.cycles += 1
+        if self.cycles % self.step == 0:
+            self.stats.append(np.mean(np.abs(output_error)))
         output_delta = output_error * self._sigmoid_deriv(predicted) * a
         hidden_error = np.dot(output_delta, self.output_synapse.T)
         hidden_delta = hidden_error * self._sigmoid_deriv(self.hidden_layer) * a
