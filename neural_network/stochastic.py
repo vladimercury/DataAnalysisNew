@@ -1,5 +1,5 @@
 import neural_network.reader as reader
-from neural_network.network import NeuralNetwork
+from neural_network.network2 import NeuralNetwork
 from util.frame import progress
 from sklearn.metrics import f1_score, classification_report, accuracy_score
 from util.dump import dump_object, load_object
@@ -56,10 +56,16 @@ def classify():
     predicted = get_predicted(predicted)
     return f1_score(test_labels[1], predicted)
 
+
+def classify_print():
+    predicted = network.predict(images_test)
+    predicted = get_predicted(predicted)
+    print(classification_report(test_labels[1], predicted))
+
 network = NeuralNetwork(1, 1, 1)
 if NETWORK_DUMPED:
-    network = load_object('network.dump')
-    print(classify())
+    network = load_object('stoch-network.dump')
+    print(classify_print())
 else:
     images_train = images_to_np_array(train_images[2])
     labels_train = labels_to_np_array(train_labels[1])
@@ -68,26 +74,28 @@ else:
         network = load_object('stoch-network.dump')
         stats = load_object('stoch-stats.dump')
     else:
-        network = NeuralNetwork(image_size[0] * image_size[1], 30, 10)
+        network = NeuralNetwork(image_size[0] * image_size[1], 300, 10, layers=1)
     rang_train = len(images_train)
 
     print('Training...')
     cycles = 100
-    num = 30
+    num = 240
     timer = Timer()
     progress(0)
     for i in range(cycles):
         randoms = np.random.randint(0, 60000, num)
-        network.train(images_train[randoms], labels_train[randoms], 0.2)
+        network.train(images_train[randoms], labels_train[randoms], 0.1)
         if network.cycles % network.step == 0:
             stats.append(classify())
         progress((i+1) / cycles)
     print(' DONE in ', timer.get_diff_str())
+    classify_print()
     dump_object(network, 'stoch-network.dump')
     dump_object(stats, 'stoch-stats.dump')
     print(network.cycles)
     import pylab as pt
     pt.plot(np.arange(len(stats)) * network.step, stats)
+    pt.grid()
     pt.show()
     pt.plot(np.arange(len(network.stats)) * network.step, network.stats)
     pt.show()

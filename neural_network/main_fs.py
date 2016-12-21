@@ -30,8 +30,14 @@ def classify():
     predicted = get_predicted(predicted)
     return f1_score(test_labels_raw, predicted)
 
+
+def classify_print():
+    predicted = network.predict(test_data)
+    predicted = get_predicted(predicted)
+    print(classification_report(test_labels_raw, predicted))
+
 DUMPED = False
-CONTINUE = True
+CONTINUE = False
 timer = Timer()
 
 stats = []
@@ -49,16 +55,19 @@ if not DUMPED:
         network = load_object('fs_network.dump')
         stats = load_object('fs_stats.dump')
     print('Training...')
-    cycles = 30
+    cycles = 100
     timer = Timer()
     progress(0)
     for i in range(cycles):
-        network.train(train_data, train_labels)
+        network.train(train_data, train_labels, 0.1)
         progress((i+1) / cycles)
         stats.append(classify())
     print(' DONE in ', timer.get_diff_str())
     dump_object(network, 'fs_network.dump')
     dump_object(stats, 'fs_stats.dump')
+    classify_print()
+    pt.plot(np.arange(len(network.stats)) * network.step, network.stats)
+    pt.show()
 else:
     stats = load_object('fs_stats.dump')
 pt.plot(range(len(stats)), stats)

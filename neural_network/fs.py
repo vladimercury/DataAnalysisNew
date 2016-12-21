@@ -38,7 +38,7 @@ if not FS_DUMPED:
     ig = [x[1] for x in sorted(load_object('ig.dump'))]
 
     y = np.zeros((28, 28, 3))
-    n = 150
+    n = 100
     features = ig[-n:]
     for i in features:
         y[i // 28][i % 28] = [1, 1, 1]

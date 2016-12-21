@@ -9,7 +9,7 @@ import numpy as np
 import warnings
 warnings.filterwarnings('ignore')
 
-DUMPED = False
+DUMPED = True
 CONTINUE = False
 
 
@@ -27,7 +27,7 @@ def labels_to_np_array(labels_data):
 def get_predicted(predict_data):
     return [max(range(len(i)), key=lambda x: i[x]) for i in predict_data]
 
-stats_x, stats_y = [], []
+stats_x, stats_y, stats_y2, stats_y3 = [], [], [], []
 if CONTINUE or DUMPED:
     stats_x, stats_y = load_object('stoch-hidden-stat.dump')
 if not DUMPED or (DUMPED and CONTINUE):
@@ -63,12 +63,12 @@ if not DUMPED or (DUMPED and CONTINUE):
     images_train = images_to_np_array(train_images[2])
     labels_train = labels_to_np_array(train_labels[1])
 
-    cycles = 3214
-    num = 53
+    cycles = 1000
+    num = 150
     print('Training...')
     progress(0)
     timer = Timer()
-    rang = list(range(60, 65, 1))
+    rang = list(range(200, 300, 20))
     for j in range(len(rang)):
         np.random.seed(1)
         network = NeuralNetwork(image_size[0] * image_size[1], rang[j], 10)
@@ -81,5 +81,5 @@ if not DUMPED or (DUMPED and CONTINUE):
     dump_object((stats_x, stats_y), 'stoch-hidden-stat.dump')
     print(' DONE in ', timer.get_diff_str())
 import pylab as pt
-pt.plot(stats_x, stats_y)
+pt.plot(stats_x, stats_y, color='red')
 pt.show()
